@@ -1,0 +1,41 @@
+[gd_scene load_steps=2 format=3 uid="uid://d3x8y201w5v6a"]
+
+[ext_resource type="Script" path="res://src/housing/housing_grid.gd" id="1_grid"]
+
+[node name="HousingGrid" type="Control"]
+layout_mode = 3
+anchors_preset = 0
+script = ExtResource("1_grid")
+
+[node name="BackgroundWall" type="TextureRect" parent="."]
+texture_repeat = 2
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_bottom = -100.0
+expand_mode = 1
+stretch_mode = 1
+
+[node name="BackgroundFloor" type="TextureRect" parent="."]
+texture_repeat = 2
+layout_mode = 1
+anchors_preset = 12
+anchor_top = 1.0
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_top = -150.0
+expand_mode = 1
+stretch_mode = 1
+
+[node name="WallLayer" type="Control" parent="."]
+anchors_preset = 0
+mouse_filter = 2
+
+[node name="FloorLayer" type="Control" parent="."]
+anchors_preset = 0
+mouse_filter = 2
+
+[node name="ObjectLayer" type="Control" parent="."]
+anchors_preset = 0
+mouse_filter = 2

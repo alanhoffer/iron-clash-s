@@ -1,0 +1,356 @@
+[gd_scene load_steps=3 format=3 uid="uid://c0h2h0m3u8b1d"]
+
+[ext_resource type="Script" path="res://src/ui/hub.gd" id="1_hub_script"]
+[ext_resource type="Script" path="res://src/net/api_client.gd" id="2_api_script"]
+[ext_resource type="PackedScene" path="res://scenes/housing/HousingGrid.tscn" id="3_grid"]
+[ext_resource type="Texture2D" path="res://assets/sprites/character.png" id="4_char"]
+
+[node name="Hub" type="Control"]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+script = ExtResource("1_hub_script")
+
+[node name="ApiClient" type="Node" parent="."]
+script = ExtResource("2_api_script")
+
+[node name="Background" type="ColorRect" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+color = Color(0.08, 0.07, 0.1, 1)
+
+[node name="Root" type="VBoxContainer" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = 0.0
+offset_top = 0.0
+offset_right = 0.0
+offset_bottom = 0.0
+theme_override_constants/separation = 10
+
+[node name="TopBar" type="HBoxContainer" parent="Root"]
+layout_mode = 2
+theme_override_constants/separation = 12
+
+[node name="Title" type="Label" parent="Root/TopBar"]
+layout_mode = 2
+text = "IronClash — Hub (placeholder)"
+
+[node name="Spacer" type="Control" parent="Root/TopBar"]
+layout_mode = 2
+size_flags_horizontal = 3
+
+[node name="BackendStatus" type="Label" parent="Root/TopBar"]
+unique_name_in_owner = true
+layout_mode = 2
+text = "Backend: ?"
+
+[node name="EditButton" type="Button" parent="Root/TopBar"]
+layout_mode = 2
+toggle_mode = true
+text = "Editar Casa"
+
+[node name="Content" type="Control" parent="Root"]
+layout_mode = 2
+size_flags_vertical = 3
+
+[node name="HouseArea" type="Control" parent="Root/Content"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+clip_contents = true
+
+[node name="House" type="Control" parent="Root/Content/HouseArea"]
+layout_mode = 2
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = 10.0
+offset_top = 10.0
+offset_right = 1290.0
+offset_bottom = -10.0
+custom_minimum_size = Vector2(2500, 0)
+
+[node name="HousingGrid" parent="Root/Content/HouseArea/House" instance=ExtResource("3_grid")]
+unique_name_in_owner = true
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+
+[node name="Hint" type="Label" parent="Root/Content/HouseArea/House"]
+layout_mode = 1
+anchors_preset = 7
+anchor_left = 0.0
+anchor_top = 0.0
+anchor_right = 1.0
+anchor_bottom = 0.0
+offset_top = 10.0
+offset_bottom = 34.0
+text = "Casa/Hub (side view). Tocá el personaje para ver stats/equip y mandar a pelear."
+horizontal_alignment = 1
+
+[node name="CharacterButton" type="Button" parent="Root/Content/HouseArea/House"]
+layout_mode = 1
+anchors_preset = 2
+anchor_top = 1.0
+anchor_bottom = 1.0
+offset_left = 600.0
+offset_top = -370.0
+offset_right = 840.0
+offset_bottom = -10.0
+grow_vertical = 0
+focus_mode = 0
+text = ""
+flat = true
+
+[node name="CharacterBody" type="TextureRect" parent="Root/Content/HouseArea/House/CharacterButton"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = 10.0
+offset_top = 10.0
+offset_right = -10.0
+offset_bottom = -40.0
+texture = ExtResource("4_char")
+expand_mode = 1
+stretch_mode = 5
+
+[node name="CharacterName" type="Label" parent="Root/Content/HouseArea/House/CharacterButton"]
+layout_mode = 1
+anchors_preset = 5
+anchor_left = 0.5
+anchor_right = 0.5
+offset_left = -150.0
+offset_top = -30.0
+offset_right = 150.0
+offset_bottom = -6.0
+grow_horizontal = 2
+text = "Guerrero (tap)"
+horizontal_alignment = 1
+
+[node name="EditorUI" type="Control" parent="Root/Content/HouseArea/House"]
+unique_name_in_owner = true
+visible = false
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+mouse_filter = 2
+
+[node name="InventoryBar" type="PanelContainer" parent="Root/Content/HouseArea/House/EditorUI"]
+layout_mode = 1
+anchors_preset = 12
+anchor_top = 1.0
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_top = -80.0
+grow_horizontal = 2
+grow_vertical = 0
+
+[node name="HBox" type="HBoxContainer" parent="Root/Content/HouseArea/House/EditorUI/InventoryBar"]
+layout_mode = 2
+theme_override_constants/separation = 10
+alignment = 1
+
+[node name="ItemChair" type="Button" parent="Root/Content/HouseArea/House/EditorUI/InventoryBar/HBox"]
+custom_minimum_size = Vector2(80, 0)
+layout_mode = 2
+text = "Silla
+(Suelo)"
+
+[node name="ItemPic" type="Button" parent="Root/Content/HouseArea/House/EditorUI/InventoryBar/HBox"]
+custom_minimum_size = Vector2(80, 0)
+layout_mode = 2
+text = "Reloj
+(Pared)"
+
+[node name="Sep" type="VSeparator" parent="Root/Content/HouseArea/House/EditorUI/InventoryBar/HBox"]
+layout_mode = 2
+
+[node name="Wall1" type="Button" parent="Root/Content/HouseArea/House/EditorUI/InventoryBar/HBox"]
+custom_minimum_size = Vector2(80, 0)
+layout_mode = 2
+text = "Pared 1"
+
+[node name="Wall2" type="Button" parent="Root/Content/HouseArea/House/EditorUI/InventoryBar/HBox"]
+custom_minimum_size = Vector2(80, 0)
+layout_mode = 2
+text = "Pared 2"
+
+[node name="Sep2" type="VSeparator" parent="Root/Content/HouseArea/House/EditorUI/InventoryBar/HBox"]
+layout_mode = 2
+
+[node name="Floor1" type="Button" parent="Root/Content/HouseArea/House/EditorUI/InventoryBar/HBox"]
+custom_minimum_size = Vector2(80, 0)
+layout_mode = 2
+text = "Piso 1"
+
+[node name="Floor2" type="Button" parent="Root/Content/HouseArea/House/EditorUI/InventoryBar/HBox"]
+custom_minimum_size = Vector2(80, 0)
+layout_mode = 2
+text = "Piso 2"
+
+[node name="Floor3" type="Button" parent="Root/Content/HouseArea/House/EditorUI/InventoryBar/HBox"]
+custom_minimum_size = Vector2(80, 0)
+layout_mode = 2
+text = "Piso 3"
+
+[node name="Panels" type="Control" parent="Root/Content"]
+layout_mode = 1
+anchors_preset = 11
+anchor_left = 1.0
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = -400.0
+grow_horizontal = 0
+grow_vertical = 2
+mouse_filter = 2
+
+[node name="CharacterPanel" type="PanelContainer" parent="Root/Content/Panels"]
+unique_name_in_owner = true
+visible = false
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_top = 0.0
+offset_bottom = 0.0
+
+[node name="CharacterPanelMargin" type="MarginContainer" parent="Root/Content/Panels/CharacterPanel"]
+layout_mode = 2
+theme_override_constants/margin_left = 14
+theme_override_constants/margin_top = 14
+theme_override_constants/margin_right = 14
+theme_override_constants/margin_bottom = 14
+
+[node name="CharacterPanelVBox" type="VBoxContainer" parent="Root/Content/Panels/CharacterPanel/CharacterPanelMargin"]
+layout_mode = 2
+theme_override_constants/separation = 10
+
+[node name="CharHeader" type="HBoxContainer" parent="Root/Content/Panels/CharacterPanel/CharacterPanelMargin/CharacterPanelVBox"]
+layout_mode = 2
+
+[node name="CharTitle" type="Label" parent="Root/Content/Panels/CharacterPanel/CharacterPanelMargin/CharacterPanelVBox/CharHeader"]
+layout_mode = 2
+text = "Personaje"
+
+[node name="CharHeaderSpacer" type="Control" parent="Root/Content/Panels/CharacterPanel/CharacterPanelMargin/CharacterPanelVBox/CharHeader"]
+layout_mode = 2
+size_flags_horizontal = 3
+
+[node name="CharClose" type="Button" parent="Root/Content/Panels/CharacterPanel/CharacterPanelMargin/CharacterPanelVBox/CharHeader"]
+layout_mode = 2
+text = "Cerrar"
+
+[node name="StatsLabel" type="RichTextLabel" parent="Root/Content/Panels/CharacterPanel/CharacterPanelMargin/CharacterPanelVBox"]
+unique_name_in_owner = true
+layout_mode = 2
+fit_content = true
+bbcode_enabled = true
+text = "[b]Stats[/b]\nHP: ?\nATK: ?\nDEF: ?\nSPD: ?\nCRIT: ?\nEVA: ?\nBLOCK: ?"
+
+[node name="GearLabel" type="RichTextLabel" parent="Root/Content/Panels/CharacterPanel/CharacterPanelMargin/CharacterPanelVBox"]
+layout_mode = 2
+fit_content = true
+bbcode_enabled = true
+text = "[b]Gear (MVP)[/b]\nArma: (placeholder)\nArmadura: (placeholder)"
+
+[node name="FightRow" type="HBoxContainer" parent="Root/Content/Panels/CharacterPanel/CharacterPanelMargin/CharacterPanelVBox"]
+layout_mode = 2
+theme_override_constants/separation = 10
+
+[node name="SeedLabel" type="Label" parent="Root/Content/Panels/CharacterPanel/CharacterPanelMargin/CharacterPanelVBox/FightRow"]
+layout_mode = 2
+text = "Seed:"
+
+[node name="SeedEdit" type="LineEdit" parent="Root/Content/Panels/CharacterPanel/CharacterPanelMargin/CharacterPanelVBox/FightRow"]
+unique_name_in_owner = true
+layout_mode = 2
+custom_minimum_size = Vector2(120, 0)
+text = "1"
+
+[node name="Fight" type="Button" parent="Root/Content/Panels/CharacterPanel/CharacterPanelMargin/CharacterPanelVBox/FightRow"]
+layout_mode = 2
+text = "Pelear"
+
+[node name="ReplayPanel" type="PanelContainer" parent="Root/Content/Panels"]
+unique_name_in_owner = true
+visible = false
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+
+[node name="ReplayMargin" type="MarginContainer" parent="Root/Content/Panels/ReplayPanel"]
+layout_mode = 2
+theme_override_constants/margin_left = 14
+theme_override_constants/margin_top = 14
+theme_override_constants/margin_right = 14
+theme_override_constants/margin_bottom = 14
+
+[node name="ReplayVBox" type="VBoxContainer" parent="Root/Content/Panels/ReplayPanel/ReplayMargin"]
+layout_mode = 2
+theme_override_constants/separation = 10
+
+[node name="ReplayHeader" type="HBoxContainer" parent="Root/Content/Panels/ReplayPanel/ReplayMargin/ReplayVBox"]
+layout_mode = 2
+
+[node name="ReplayTitle" type="Label" parent="Root/Content/Panels/ReplayPanel/ReplayMargin/ReplayVBox/ReplayHeader"]
+layout_mode = 2
+text = "Replay"
+
+[node name="ReplayHeaderSpacer" type="Control" parent="Root/Content/Panels/ReplayPanel/ReplayMargin/ReplayVBox/ReplayHeader"]
+layout_mode = 2
+size_flags_horizontal = 3
+
+[node name="ReplayClose" type="Button" parent="Root/Content/Panels/ReplayPanel/ReplayMargin/ReplayVBox/ReplayHeader"]
+layout_mode = 2
+text = "Cerrar"
+
+[node name="HPBars" type="VBoxContainer" parent="Root/Content/Panels/ReplayPanel/ReplayMargin/ReplayVBox"]
+layout_mode = 2
+theme_override_constants/separation = 6
+
+[node name="AHP" type="ProgressBar" parent="Root/Content/Panels/ReplayPanel/ReplayMargin/ReplayVBox/HPBars"]
+unique_name_in_owner = true
+layout_mode = 2
+max_value = 100.0
+value = 100.0
+show_percentage = true
+
+[node name="BHP" type="ProgressBar" parent="Root/Content/Panels/ReplayPanel/ReplayMargin/ReplayVBox/HPBars"]
+unique_name_in_owner = true
+layout_mode = 2
+max_value = 100.0
+value = 100.0
+show_percentage = true
+
+[node name="Log" type="RichTextLabel" parent="Root/Content/Panels/ReplayPanel/ReplayMargin/ReplayVBox"]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_vertical = 3
+bbcode_enabled = true
+text = "[i]Esperando replay...[/i]"
+
+[connection signal="pressed" from="Root/TopBar/EditButton" to="." method="_on_edit_button_toggled"]
+[connection signal="button_down" from="Root/Content/HouseArea/House/EditorUI/InventoryBar/HBox/ItemChair" to="." method="_on_item_chair_button_down"]
+[connection signal="button_down" from="Root/Content/HouseArea/House/EditorUI/InventoryBar/HBox/ItemPic" to="." method="_on_item_pic_button_down"]
+[connection signal="button_down" from="Root/Content/HouseArea/House/EditorUI/InventoryBar/HBox/Wall1" to="." method="_on_wall1_down"]
+[connection signal="button_down" from="Root/Content/HouseArea/House/EditorUI/InventoryBar/HBox/Wall2" to="." method="_on_wall2_down"]
+[connection signal="button_down" from="Root/Content/HouseArea/House/EditorUI/InventoryBar/HBox/Floor1" to="." method="_on_floor1_down"]
+[connection signal="button_down" from="Root/Content/HouseArea/House/EditorUI/InventoryBar/HBox/Floor2" to="." method="_on_floor2_down"]
+[connection signal="button_down" from="Root/Content/HouseArea/House/EditorUI/InventoryBar/HBox/Floor3" to="." method="_on_floor3_down"]
+[connection signal="pressed" from="Root/Content/HouseArea/House/CharacterButton" to="." method="_on_character_pressed"]
+[connection signal="pressed" from="Root/Content/Panels/CharacterPanel/CharacterPanelMargin/CharacterPanelVBox/CharHeader/CharClose" to="." method="_on_char_close_pressed"]
+[connection signal="pressed" from="Root/Content/Panels/CharacterPanel/CharacterPanelMargin/CharacterPanelVBox/FightRow/Fight" to="." method="_on_fight_pressed"]
+[connection signal="pressed" from="Root/Content/Panels/ReplayPanel/ReplayMargin/ReplayVBox/ReplayHeader/ReplayClose" to="." method="_on_replay_close_pressed"]
