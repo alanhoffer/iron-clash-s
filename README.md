@@ -1,7 +1,10 @@
 # IronClashS (vertical slice)
 
 Este repo contiene un **vertical slice** mínimo:
-- **Godot 4.5**: Hub (casa placeholder) → tocar personaje → ver stats/gear → botón **Pelear** → muestra replay.
+- **Godot 4.x**:
+  - **Hub / Housing**: Casa customizable (drag & drop de muebles, cambio de suelo/pared).
+  - **Personaje**: Interacción simple (click para ver stats).
+  - **Combate**: Botón **Pelear** que solicita simulación al backend y muestra el replay (log de batalla).
 - **FastAPI**: simula combate autoritativo (ATB + Dodge→Block→Crit→Daño) y devuelve **replay JSON** determinista por `seed`.
 
 ## Backend (FastAPI)
@@ -24,7 +27,7 @@ uvicorn app.main:app --reload --host 127.0.0.1 --port 8000
 
 ## Cliente (Godot)
 
-1) Abrí el proyecto (`project.godot`) con **Godot 4.5**.
+1) Abrí el proyecto (`project.godot`) con **Godot 4.x**.
 2) Ejecutá Play.
 3) Si el backend está corriendo, arriba a la derecha vas a ver **Backend: OK**.
 4) Tocá el personaje → **Pelear** → se llena el panel con el replay.
