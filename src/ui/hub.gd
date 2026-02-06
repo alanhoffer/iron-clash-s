@@ -61,6 +61,8 @@ func _ready() -> void:
 	if inventory_bar: inventory_bar.visible = false
 
 # --- SIDEBAR & SHOP ---
+var _in_shop_mode: bool = false
+
 func _create_left_sidebar() -> void:
 	# Check if Sidebar exists anywhere
 	if has_node("HUDLayer/LeftSidebar"): return
@@ -98,8 +100,6 @@ func _create_left_sidebar() -> void:
 	shop_btn.pressed.connect(_on_shop_toggle)
 	sidebar.add_child(shop_btn)
 
-var _in_shop_mode: bool = false
-
 func _on_shop_toggle() -> void:
 	if _in_shop_mode:
 		_return_to_home()
@@ -108,6 +108,14 @@ func _on_shop_toggle() -> void:
 
 func _return_to_home() -> void:
 	_in_shop_mode = false
+	
+	# Teleport Player Character back to House
+	if character_button and character_button.get_parent():
+		character_button.get_parent().remove_child(character_button)
+		var house = $Root/Content/HouseArea/House
+		house.add_child(character_button)
+		# Reset position to default (center-ish)
+		character_button.position = Vector2(600, 0) # Default position from Hub.tscn
 	
 	# Slide Camera back to 0
 	var tw = create_tween().set_trans(Tween.TRANS_CUBIC).set_ease(Tween.EASE_IN_OUT)
@@ -148,100 +156,119 @@ func _transition_to_shop_room() -> void:
 	if has_node("Root/Content/ShopArea"):
 		shop_root = get_node("Root/Content/ShopArea")
 	else:
+		# Get parent size to match it
+		var content = $Root/Content
+		var parent_size = content.size
+		if parent_size == Vector2.ZERO or parent_size.y < 100:
+			# Fallback if size not ready - use viewport
+			var vp_size = get_viewport_rect().size
+			parent_size = Vector2(2500, vp_size.y)
+		
 		shop_root = Control.new()
 		shop_root.name = "ShopArea"
-		# Place it to the right of HouseArea (House is usually 1920 wide approx)
-		shop_root.custom_minimum_size = Vector2(1920, 1080) 
+		# Match House size: 2500px wide, full height
+		shop_root.custom_minimum_size = Vector2(2500, parent_size.y)
+		shop_root.size = Vector2(2500, parent_size.y)
 		shop_root.position = Vector2(2500, 0) # Far right
 		
-		# Add Background (Reuse Wall/Floor logic but static)
+		# Add Background Wall (use absolute positioning first, then anchors)
 		var bg_wall = TextureRect.new()
+		bg_wall.name = "BackgroundWall"
 		bg_wall.texture = load("res://assets/sprites/wall_3.png")
+		bg_wall.texture_repeat = TextureRect.TEXTURE_REPEAT_ENABLED
+		bg_wall.position = Vector2(0, 0)
+		bg_wall.size = Vector2(2500, parent_size.y - 100) # Leave 100px at bottom
+		bg_wall.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
 		bg_wall.stretch_mode = TextureRect.STRETCH_TILE
-		bg_wall.set_anchors_preset(Control.PRESET_FULL_RECT)
 		shop_root.add_child(bg_wall)
 		
-		# NPC
+		# Add Floor (absolute positioning)
+		var bg_floor = TextureRect.new()
+		bg_floor.name = "BackgroundFloor"
+		bg_floor.texture = load("res://assets/sprites/floor_3.png")
+		bg_floor.texture_repeat = TextureRect.TEXTURE_REPEAT_ENABLED
+		bg_floor.position = Vector2(0, parent_size.y - 150) # 150px from bottom
+		bg_floor.size = Vector2(2500, 150) # 150px height
+		bg_floor.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+		bg_floor.stretch_mode = TextureRect.STRETCH_TILE
+		shop_root.add_child(bg_floor)
+		
+		# Calculate floor top position for items
+		var floor_y = parent_size.y - 150.0
+		
+		# NPC (Merchant) - Center Screen, standing on floor
 		var npc = TextureRect.new()
-		npc.texture = load("res://assets/sprites/character.png")
+		npc.name = "MerchantNPC"
+		var npc_texture = load("res://assets/sprites/character.png")
+		if not npc_texture:
+			print("ERROR: Could not load character.png for NPC")
+		npc.texture = npc_texture
 		npc.flip_h = true # Face left towards arriving player
-		npc.position = Vector2(1200, 600) # Roughly floor level
-		npc.scale = Vector2(0.8, 0.8)
+		# Position: center X, standing on floor
+		# Use same size as character_button (240x370 from Hub.tscn)
+		npc.position = Vector2(1200, floor_y - 370) # Center X, on floor
+		npc.size = Vector2(240, 370) # Match character button size
+		npc.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+		npc.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
 		shop_root.add_child(npc)
+		
+		# Debug: Print NPC info
+		print("NPC created at: ", npc.position, " size: ", npc.size, " floor_y: ", floor_y)
 		
 		# Shop Title
 		var title = Label.new()
 		title.text = "MERCHANT"
-		title.add_theme_font_size_override("font_size", 40)
-		title.position = Vector2(1150, 550)
+		title.add_theme_font_size_override("font_size", 60)
+		title.position = Vector2(1000, 50) # Top center
 		shop_root.add_child(title)
 		
-		# Add Physical Items on tables/floor
-		_spawn_shop_item_physical(shop_root, "chair.png", 500, Vector2(800, 700))
-		_spawn_shop_item_physical(shop_root, "reloj.png", 150, Vector2(600, 600))
+		# Add Physical Items on floor
+		_spawn_shop_item_physical(shop_root, "chair.png", 500, Vector2(700, floor_y - 240))
+		_spawn_shop_item_physical(shop_root, "reloj.png", 150, Vector2(1400, floor_y - 400))
+		_spawn_shop_item_physical(shop_root, "wall_3.png", 1000, Vector2(500, floor_y - 200))
 		
 		$Root/Content.add_child(shop_root)
 
-	# 2. Move Camera to Shop
-	# We simulate camera move by tweening the 'position' of Content or HouseArea?
-	# Better to tween the HouseArea/ShopArea container.
-	# But inventory_bar was reparented to Root/Content.
-	# Let's assume we slide $Root/Content/HouseArea out and ShopArea in?
-	# Or simpler: Just tween the position of a "WorldContainer" if it existed.
-	# Current structure: Root -> Content -> [HouseArea]
-	# We added ShopArea to Content. Let's shift Content.
+	# 2. Teleport Player Character to Shop
+	if character_button and character_button.get_parent():
+		character_button.get_parent().remove_child(character_button)
+		shop_root.add_child(character_button)
+		# Position character at entrance (left side of shop)
+		# Ensure character keeps its size from Hub.tscn (240x370)
+		if character_button.size == Vector2.ZERO:
+			character_button.size = Vector2(240, 370)
+		var floor_y = shop_root.size.y - 150.0
+		# Position on floor (same calculation as house: floor_y - character_height)
+		character_button.position = Vector2(200, floor_y - 370) # Left side, on floor
 	
+	# 3. Move Camera to Shop
 	var tw = create_tween().set_trans(Tween.TRANS_CUBIC).set_ease(Tween.EASE_IN_OUT)
 	# Slide Content to show Shop (at x=2500)
 	# If House is at 0, Shop at 2500. Target Content.x = -2500.
 	tw.tween_property($Root/Content, "position:x", -2500.0, 1.5)
-	
-	# Add 'Back' button in sidebar?
-	# For now, toggling Shop button again could return.
 
 func _spawn_shop_item_physical(parent: Control, icon: String, price: int, pos: Vector2) -> void:
 	var cont = VBoxContainer.new()
 	cont.position = pos
+	# Center elements
+	cont.alignment = BoxContainer.ALIGNMENT_CENTER
 	
 	var tex = TextureRect.new()
 	tex.texture = load("res://assets/sprites/" + icon)
 	tex.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
-	tex.custom_minimum_size = Vector2(120, 120)
+	tex.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+	tex.custom_minimum_size = Vector2(150, 150) # Bigger icons
 	cont.add_child(tex)
 	
 	var btn = Button.new()
-	btn.text = "%s G" % price
+	btn.text = "%s Coins" % price
+	btn.custom_minimum_size = Vector2(120, 40)
 	btn.pressed.connect(func(): print("Bought %s" % icon))
 	cont.add_child(btn)
 	
 	parent.add_child(cont)
 
-func _create_shop_panel() -> void:
-	# Deprecated UI panel version
-	pass
-
-func _create_settings_button() -> void:
-	if not has_node("Root/TopBar"): return
-	var top_bar = get_node("Root/TopBar")
-	
-	# Try to find a right-aligned container or add one
-	var right_container = top_bar.get_node_or_null("RightContainer")
-	if not right_container:
-		right_container = HBoxContainer.new()
-		right_container.name = "RightContainer"
-		right_container.alignment = BoxContainer.ALIGNMENT_END
-		# Push to right using size flags
-		right_container.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-		top_bar.add_child(right_container)
-	
-	var btn = Button.new()
-	btn.text = "⚙" # Settings Icon Placeholder
-	btn.add_theme_font_size_override("font_size", 20)
-	btn.custom_minimum_size = Vector2(40, 40)
-	
-	btn.pressed.connect(func(): print("Open Settings Menu"))
-	
-	right_container.add_child(btn)
+# --- INVENTORY & UI ---
 
 func _enhance_inventory_ui() -> void:
 	if not inventory_bar: return
@@ -267,9 +294,6 @@ func _enhance_inventory_ui() -> void:
 	toggle_btn.pressed.connect(_on_inventory_toggle_pressed.bind(toggle_btn))
 	
 	# 3. Structure for Filters (VBox)
-	# Current structure: inventory_bar -> HBox
-	# New structure: inventory_bar -> VBox -> [FiltersHBox, ItemsHBox]
-	
 	var items_hbox = inventory_bar.get_node_or_null("HBox")
 	if not items_hbox: return
 	
@@ -324,7 +348,6 @@ func _on_inventory_toggle_pressed(btn: Button) -> void:
 	
 	var tw = create_tween().set_trans(Tween.TRANS_CUBIC).set_ease(Tween.EASE_OUT)
 	tw.tween_property(inventory_bar, "position:y", target_y, 0.3)
-
 
 func _on_filter_pressed(category: String, filter_container: HBoxContainer) -> void:
 	# Untoggle others (Radio behavior)
@@ -389,6 +412,29 @@ func _create_currency_item(text: String, color: Color) -> PanelContainer:
 	lbl.add_theme_font_size_override("font_size", 16)
 	p.add_child(lbl)
 	return p
+
+func _create_settings_button() -> void:
+	if not has_node("Root/TopBar"): return
+	var top_bar = get_node("Root/TopBar")
+	
+	# Try to find a right-aligned container or add one
+	var right_container = top_bar.get_node_or_null("RightContainer")
+	if not right_container:
+		right_container = HBoxContainer.new()
+		right_container.name = "RightContainer"
+		right_container.alignment = BoxContainer.ALIGNMENT_END
+		# Push to right using size flags
+		right_container.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+		top_bar.add_child(right_container)
+	
+	var btn = Button.new()
+	btn.text = "⚙" # Settings Icon Placeholder
+	btn.add_theme_font_size_override("font_size", 20)
+	btn.custom_minimum_size = Vector2(40, 40)
+	
+	btn.pressed.connect(func(): print("Open Settings Menu"))
+	
+	right_container.add_child(btn)
 
 func _load_defaults() -> void:
 	if housing_grid.has_node("BackgroundWall"):
@@ -568,6 +614,13 @@ func _process(delta: float) -> void:
 	_update_camera(delta)
 
 func _update_camera(delta: float) -> void:
+	# Camera follows character in both House and Shop
+	if _in_shop_mode:
+		# In Shop: camera is already positioned by Content.x tween
+		# We could add fine-tuning here if needed
+		return
+	
+	# In House: original camera logic
 	var house_area = $Root/Content/HouseArea
 	var house = $Root/Content/HouseArea/House
 	
@@ -599,12 +652,24 @@ func _input(event: InputEvent) -> void:
 		return
 
 func _move_character_to_mouse() -> void:
-	var house = $Root/Content/HouseArea/House
-	var local_mouse = house.get_local_mouse_position()
+	# Determine current area (House or Shop)
+	var current_area: Control
+	var area_size: float
 	
-	# Clamp dentro de la casa
+	if _in_shop_mode and has_node("Root/Content/ShopArea"):
+		current_area = get_node("Root/Content/ShopArea")
+		area_size = current_area.size.x
+	else:
+		current_area = $Root/Content/HouseArea/House
+		area_size = current_area.custom_minimum_size.x
+	
+	if not current_area: return
+	
+	var local_mouse = current_area.get_local_mouse_position()
+	
+	# Clamp dentro del área actual
 	var target_x = local_mouse.x - character_button.size.x / 2
-	target_x = clamp(target_x, 0, house.custom_minimum_size.x - character_button.size.x)
+	target_x = clamp(target_x, 0, area_size - character_button.size.x)
 	
 	var sprite = character_button.get_node("CharacterBody")
 	# Flip simple
@@ -759,50 +824,6 @@ func _on_edit_button_toggled() -> void:
 	# Show/Hide Inventory
 	if inventory_bar:
 		inventory_bar.visible = btn.button_pressed
-
-func _on_shop_toggle() -> void:
-	if _in_shop_mode:
-		_return_to_home()
-	else:
-		_go_to_shop()
-
-func _return_to_home() -> void:
-	_in_shop_mode = false
-	
-	# Slide Camera back to 0
-	var tw = create_tween().set_trans(Tween.TRANS_CUBIC).set_ease(Tween.EASE_IN_OUT)
-	tw.tween_property($Root/Content, "position:x", 0.0, 1.2)
-	
-	# Update Button Text
-	if has_node("HUDLayer/LeftSidebar/ShopBtn"):
-		get_node("HUDLayer/LeftSidebar/ShopBtn").text = "SHOP"
-		
-	# Re-enable Edit Button
-	if has_node("HUDLayer/LeftSidebar/EditButton"):
-		get_node("HUDLayer/LeftSidebar/EditButton").disabled = false
-
-func _go_to_shop() -> void:
-	_in_shop_mode = true
-	
-	# Close Edit Mode if active
-	if housing_grid.is_editing:
-		var edit_btn = get_node_or_null("HUDLayer/LeftSidebar/EditButton")
-		if edit_btn: 
-			edit_btn.button_pressed = false
-			# Manually call logic because signal might not trigger if set by code depending on setup
-			editor_ui.visible = false
-			housing_grid.is_editing = false
-			if inventory_bar: inventory_bar.visible = false
-	
-	# Disable Edit Button while in Shop (can't edit shop)
-	if has_node("HUDLayer/LeftSidebar/EditButton"):
-		get_node("HUDLayer/LeftSidebar/EditButton").disabled = true
-	
-	# Update Button Text
-	if has_node("HUDLayer/LeftSidebar/ShopBtn"):
-		get_node("HUDLayer/LeftSidebar/ShopBtn").text = "HOME"
-	
-	_transition_to_shop_room()
 
 func _on_item_chair_button_down() -> void:
 	_start_drag("chair")
